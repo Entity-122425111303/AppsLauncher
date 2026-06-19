@@ -8,11 +8,11 @@
 
 | 情况 | 功能 | 预计完成时间 | 备注 |
 |------|------|--------------|------|
-| <input type="checkbox" disabled> | 刷新列表 | 2026.07.20 |  |
+| ☐ | 刷新列表 | 2026.07.20 |  |
 
 - [issues](https://github.com/Entity-122425111303/AppsLauncher/issues)
 
 | 情况 | 问题 | 预计完成时间 | 备注 |
 |------|------|--------------|------|
-| <input type="checkbox" disabled> | delete报错 | 2026.06.20 |  |
+| ☐ | delete报错 | 2026.06.20 |  |
 
