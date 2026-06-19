@@ -25,6 +25,7 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                              'app',
                                              operate='get',
                                              drives=re.split(':', env["NewPath"])[0],
+                                             add_drive=False,
                                              ), mode)
             except ValueError as e:
                 path_switch(AppDir("AppsLauncher", 'exit', ErrorCode=1, ErrorInfo=e), mode)
@@ -53,7 +54,7 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                    ), mode)
             NewDrives = re.split(':', env['NewPath'])[0]
             AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get', drives=NewDrives), mode)
-            AppPath[env['NewName']] = re.split(':', env['NewPath'])[-1]
+            AppPath[env['NewName']] = re.split(':/', env['NewPath'])[-1]
             path_switch(AppDir('AppsLauncher',
                                 'app',
                                 operate='write',
@@ -104,6 +105,8 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                 if all((env['operate'] == 'write', env['drives'], isinstance(env['AppPathDict'], dict))):  # 写入指定盘应用字典
             os.makedirs(env['drives'] + r':/AppsLauncher/data', exist_ok=True)
             p = env['drives'] + r':/AppsLauncher/data/AppPath.json'
+            for x, y in env['AppPathDict'].items():
+                env['AppPathDict'][x] = re.split(':/', y)[-1]
             try:
                 with open(p, 'w', encoding='utf8') as f:
                     json.dump(env['AppPathDict'], f, ensure_ascii=False, indent=4)

@@ -2,6 +2,11 @@ import json, sys, QT_PLUGIN_PATH_INSERT, pyuac, argparse
 from uiclses import *
 from operatefuncs import *
 
+if getattr(sys, 'frozen', False):
+    os.chdir(os.path.dirname(sys.executable))
+else:
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 parser = argparse.ArgumentParser(description='AppsLauncher.exe')
 parser.add_argument('-a',
                     '-AppName',
