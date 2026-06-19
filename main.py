@@ -5,6 +5,7 @@ from operatefuncs import *
 parser = argparse.ArgumentParser(description='AppsLauncher.exe')
 parser.add_argument('-a',
                     '-AppName',
+                    '-A',
                     help='AppName',
                     type=str,
                     nargs='*',
@@ -13,9 +14,10 @@ parser.add_argument('-a',
                     dest='AppName',
                     )
 parser.add_argument('-t', '-test', help='TestMode', default=False, action='store_true', dest='test')
+parser.add_argument('--T-AddApps', default=False, action='store_true', dest='T_AddApps')
 args = parser.parse_args()
 
-mode = {'test': args.test, 'LinkStart': args.AppName}
+mode = {'test': args.test, 'LinkStart': args.AppName, '--T-AddApps': args.T_AddApps}
 
 false, ture, null = False, True, None
 app = QtWidgets.QApplication(sys.argv)
@@ -26,18 +28,20 @@ NewApp: tuple = ()
 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode)
 
 if mode['LinkStart']:
-    try:
-        path_switch(AppDir('AppsLauncher', 'app', operate='open', Name=mode['LinkStart']['Name']), mode)
-    except:
+    num = 0
+    for x in mode['LinkStart']:
+        if path_switch(AppDir('AppsLauncher', 'app', operate='open', Name=x), mode):
+            num += 1
+    if num == 0:
         print('error\r\n打开主程序')
     else:
-        exit()
+        path_switch(AppDir('AppsLauncher', 'exit', ExitCode=0), mode)
 
 
 # 主程序
+@pyuac.main_requires_admin
 def main():
-    if not os.path.exists('./data'):
-        os.mkdir('./data')
+    os.makedirs('./data', exist_ok=True)
     if not os.path.exists('./data/settings.json'):
         with open('./data/settings.json', 'w', encoding='utf8') as f:
             settings = {'确认删除': True, '打开不关闭': False}
@@ -53,7 +57,7 @@ def main():
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, mode)
 
-    if mode['test']:
+    if mode['--T-AddApps']:
         ui.add_choice_to_viewlist({'app1': 1, 'app2': 2, 'app3': 3})  # type:ignore # 测试用
 
     ui.add_choice_to_viewlist(path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode))
@@ -62,9 +66,6 @@ def main():
     ExitCode = app.exec_()
     path_switch(AppDir('AppsLauncher', 'exit', ExitCode=ExitCode), mode)
 
-if False:
-#if not mode['test']:
-    main = pyuac.main_requires_admin(main)
 
 if __name__ == '__main__':
     main()

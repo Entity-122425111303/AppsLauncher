@@ -14,8 +14,10 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                 print(f'opening {env["Name"]}')
                 AppPath = path_switch(AppDir("AppsLauncher", 'app', operate='get'), mode)
                 os.startfile(AppPath[env["Name"]])
+                return True
             except:
                 print('fail!')
+                return False
         case AppDir('AppsLauncher', 'app', env) \
                 if env['operate'] == 'insert' and env['NewName'] and env['NewPath']:  # 增加应用
             try:
@@ -38,7 +40,7 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                    ), mode)
         case AppDir('AppsLauncher', 'app', env) \
                 if env['operate'] == 'edit' and env['NewName'] and env['NewPath'] and env['InitialName']:  # 编辑应用
-            if not mode['test']:
+            if not (mode['--T-AddApps'] and any((env['Name'] == 'app1', env['Name'] == 'app2', env['Name'] == 'app3'))):
                 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode)
                 InitialDrives = re.split(':', AppPath[env['InitialName']])[0]
                 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get', drives=InitialDrives), mode)
@@ -49,17 +51,17 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                    drives=InitialDrives,
                                    AppPathDict=AppPath,
                                    ), mode)
-            NewDrives = re.split(':', AppPath[env['NewPath']])[0]
+            NewDrives = re.split(':', env['NewPath'])[0]
             AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get', drives=NewDrives), mode)
-            AppPath[env['NewName']] = re.split(':', AppPath[env['NewPath']])[-1]
+            AppPath[env['NewName']] = re.split(':', env['NewPath'])[-1]
             path_switch(AppDir('AppsLauncher',
-                               'app',
-                               operate='write',
-                               drives=NewDrives,
-                               AppPathDict=AppPath,
-                               ), mode)
+                                'app',
+                                operate='write',
+                                drives=NewDrives,
+                                AppPathDict=AppPath,
+                                ), mode)
         case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'delete' and env['Name']:  # 删除应用
-            if not mode['test']:
+            if not (mode['--T-AddApps'] and any((env['Name'] == 'app1', env['Name'] == 'app2', env['Name'] == 'app3'))):
                 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode)
                 drives = re.split(':', AppPath[env['Name']])[0]
                 AppPath = path_switch(AppDir('AppsLauncher',
@@ -69,11 +71,11 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                              add_drive=False,
                                              ), mode)
                 AppPath.pop(env['Name'])
-                path_switch(AppDir('AppsLauncher', 'app', drives=drives, AppPathDict=AppPath), mode)
+                path_switch(AppDir('AppsLauncher', 'app', operate='write', drives=drives, AppPathDict=AppPath), mode)
         case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'get':  # 获取应用字典
             AppPath: dict = {}
             for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-                p = x + r':/data/AppPath.json'
+                p = x + r':/AppsLauncher/data/AppPath.json'
                 if os.path.exists(p):
                     with open(p, 'r', encoding='utf8') as f:
                         AppDir1: dict = json.load(f)
@@ -87,7 +89,7 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
             except KeyError:
                 env['add_drive'] = True
             for x in env['drives']:
-                p = x + r':/data/AppPath.json'
+                p = x + r':/AppsLauncher/data/AppPath.json'
                 if os.path.exists(p):
                     with open(p, 'r', encoding='utf8') as f:
                         AppDir1: dict = json.load(f)
@@ -99,10 +101,9 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
             else:
                 raise ValueError('incorrect drives')
         case AppDir('AppsLauncher', 'app', env) \
-                if env['operate'] == 'write' and env['drives'] and env['AppPathDict']:  # 写入指定盘应用字典
-            if not os.path.exists(env['drives'] + r':/data'):
-                os.mkdir(env['drives'] + r':/data')
-            p = env['drives'] + r':/data/AppPath.json'
+                if all((env['operate'] == 'write', env['drives'], isinstance(env['AppPathDict'], dict))):  # 写入指定盘应用字典
+            os.makedirs(env['drives'] + r':/AppsLauncher/data', exist_ok=True)
+            p = env['drives'] + r':/AppsLauncher/data/AppPath.json'
             try:
                 with open(p, 'w', encoding='utf8') as f:
                     json.dump(env['AppPathDict'], f, ensure_ascii=False, indent=4)

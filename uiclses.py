@@ -1,3 +1,5 @@
+import functools
+
 from PyQt5 import QtWidgets, QtCore
 from choose import choose_file
 from operatefuncs import *
@@ -101,12 +103,14 @@ class Ui_Dialog(QtWidgets.QDialog):
         if not self.lineEdit_2.text():
             self.change_text2('此栏不为空!')
             error = True
-        elif not all((os.path.exists(self.lineEdit_2.text()), self.mode['test'])):
-            self.change_text2('路径无效!')
-            error = True
-        elif os.path.isdir(self.lineEdit_2.text()) and not self.mode['test']:
-            self.change_text2('路径无效!')
-            error = True
+        elif not os.path.exists(self.lineEdit_2.text()):
+            if not self.mode['test']:
+                self.change_text2('路径无效!')
+                error = True
+        elif os.path.isdir(self.lineEdit_2.text()):
+            if not self.mode['test']:
+                self.change_text2('路径无效!')
+                error = True
         if all((self.window_type == 'edit',
                 self.lineEdit_2.text() == self.text2,
                 self.lineEdit.text() == self.text1,
@@ -195,7 +199,10 @@ class Ui_MainWindow(object):
         self.pushButton_6.clicked.connect(self.delete)
         self.pushButton_7.clicked.connect(self.edit)
         self.pushButton_8.clicked.connect(self.link)
-        self.listWidget.itemClicked.connect(self.choose)
+
+        self.change_btn_enabled_true = functools.partial(self.change_btn_enabled, a0=True)
+        self.listWidget.itemClicked.connect(self.change_btn_enabled_true)
+
         self.checkBox_2.clicked.connect(self.checkbox2checked)
         self.checkBox.clicked.connect(self.checkboxchecked)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -204,7 +211,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "AppsLauncher"))
         __sortingEnabled = self.listWidget.isSortingEnabled()
-        self.listWidget.setSortingEnabled(False)
+        self.listWidget.setSortingEnabled(True)
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.pushButton_4.setText(_translate("MainWindow", "Open"))
         self.pushButton_4.setShortcut(_translate("MainWindow", "O"))
@@ -221,10 +228,7 @@ class Ui_MainWindow(object):
         self.pushButton_8.setShortcut(_translate("MainWindow", "L"))
         self.checkBox_2.setText(_translate("MainWindow", "不再确认删除"))
 
-        self.pushButton_4.setEnabled(False)
-        self.pushButton_6.setEnabled(False)
-        self.pushButton_7.setEnabled(False)
-        self.pushButton_8.setEnabled(False)
+        self.change_btn_enabled(False)
 
         self.pushButton_8.hide()
 
@@ -239,11 +243,11 @@ class Ui_MainWindow(object):
                                                           Name='确认删除',
                                                           ), self.mode))
 
-    def choose(self):
-        self.pushButton_4.setEnabled(True)
-        self.pushButton_6.setEnabled(True)
-        self.pushButton_7.setEnabled(True)
-        self.pushButton_8.setEnabled(True)
+    def change_btn_enabled(self, a0):
+        self.pushButton_4.setEnabled(a0)
+        self.pushButton_6.setEnabled(a0)
+        self.pushButton_7.setEnabled(a0)
+        self.pushButton_8.setEnabled(a0)
 
     def open(self):
         print(self.listWidget.currentItem().text())
@@ -277,27 +281,28 @@ class Ui_MainWindow(object):
             m.exec()
             print(ui2.returndata)
             if ui2.returndata is not None:
-                self.listWidget.takeItem(self.listWidget.currentRow())
                 path_switch(AppDir('AppsLauncher',
                                    'app',
                                    operate='delete',
                                    Name=self.listWidget.currentItem().text(),
-                                   ),self.mode)
+                                   ), self.mode)
+                self.listWidget.takeItem(self.listWidget.currentRow())
                 if ui2.returndata:
                     path_switch(AppDir("AppsLauncher", 'settings', operate='edit', 确认删除=False), self.mode)
                     self.checkBox_2.setChecked(True)
         else:
-            self.listWidget.takeItem(self.listWidget.currentRow())
             path_switch(AppDir('AppsLauncher',
                                'app',
                                operate='delete',
-                               Name=self.listWidget.currentItem().text(),  # 报错
+                               Name=self.listWidget.currentItem().text(),
                                ), self.mode)
+            self.listWidget.takeItem(self.listWidget.currentRow())
+        self.change_btn_enabled(False)
         self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
     def edit(self):
         Dialog = QtWidgets.QDialog()
         ui2 = Ui_Dialog()
-        if self.mode['test']:
+        if self.mode['--T-AddApps'] and any((self.listWidget.currentItem().text() == 'app1', self.listWidget.currentItem().text() == 'app2', self.listWidget.currentItem().text() == 'app3')):
             text2 = 'dir'
         else:
             text2 = path_switch(AppDir('AppsLauncher', 'app', operate='get'),
@@ -305,14 +310,16 @@ class Ui_MainWindow(object):
         ui2.setupUi(self.mode, Dialog, window_type='edit', text1=self.listWidget.currentItem().text(), text2=text2)
         Dialog.exec()
         print(ui2.result_data)
-        path_switch(AppDir('AppsLauncher',
-                           'app',
-                           operate='edit',
-                           NewName=ui2.result_data['Name'],
-                           NewPath=ui2.result_data['Path'],
-                           InitialName=ui2.result_data['InitialName'],
-                           ), self.mode)
-        self.listWidget.setCurrentRow(ui2.result_data['Name'])
+        if ui2.result_data:
+            path_switch(AppDir('AppsLauncher',
+                               'app',
+                               operate='edit',
+                               NewName=ui2.result_data['Name'],
+                               NewPath=ui2.result_data['Path'],
+                               InitialName=ui2.result_data['InitialName'],
+                               ), self.mode)
+            CurrentLine = self.listWidget.currentItem()
+            CurrentLine.setText(ui2.result_data['Name'])
         self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
 
     def add_choice_to_viewlist(self, AppDict: dict[str, AppDir | str]):
