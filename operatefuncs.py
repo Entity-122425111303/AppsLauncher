@@ -73,16 +73,6 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                                              ), mode)
                 AppPath.pop(env['Name'])
                 path_switch(AppDir('AppsLauncher', 'app', operate='write', drives=drives, AppPathDict=AppPath), mode)
-        case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'get':  # 获取应用字典
-            AppPath: dict = {}
-            for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-                p = x + r':/AppsLauncher/data/AppPath.json'
-                if os.path.exists(p):
-                    with open(p, 'r', encoding='utf8') as f:
-                        AppDir1: dict = json.load(f)
-                    for z, y in AppDir1.items():
-                        AppPath[z] = x + ':/' + y
-            return AppPath
         case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'get' and env['drives']:  # 获取指定盘应用字典
             AppPath: dict = {}
             try:
@@ -101,6 +91,16 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                 return AppPath
             else:
                 raise ValueError('incorrect drives')
+        case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'get':  # 获取应用字典
+            AppPath: dict = {}
+            for x in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+                p = x + r':/AppsLauncher/data/AppPath.json'
+                if os.path.exists(p):
+                    with open(p, 'r', encoding='utf8') as f:
+                        AppDir1: dict = json.load(f)
+                    for z, y in AppDir1.items():
+                        AppPath[z] = x + ':/' + y
+            return AppPath
         case AppDir('AppsLauncher', 'app', env) \
                 if all((env['operate'] == 'write', env['drives'], isinstance(env['AppPathDict'], dict))):  # 写入指定盘应用字典
             os.makedirs(env['drives'] + r':/AppsLauncher/data', exist_ok=True)

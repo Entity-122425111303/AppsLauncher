@@ -144,6 +144,7 @@ class Ui_Dialog(QtWidgets.QDialog):
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow, mode):
+        self.windowopen = False
         self.mode = mode
         self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
         self.MainWindow = MainWindow
@@ -256,71 +257,79 @@ class Ui_MainWindow(object):
             self.MainWindow.close()
 
     def insert(self):
-        Dialog = QtWidgets.QDialog()
-        ui2 = Ui_Dialog()
-        ui2.setupUi(self.mode, Dialog)
-        Dialog.exec()
-        print_logs(ui2.result_data)
-        if ui2.result_data:
-            path_switch(AppDir('AppsLauncher',
-                               'app',
-                               operate='insert',
-                               NewName=ui2.result_data['Name'],
-                               NewPath=ui2.result_data['Path'],
-                               ), self.mode)
-            self.add_choice_to_viewlist({ui2.result_data['Name']: ui2.result_data['Path']})
-        else:
-            print_logs('no input')
-        self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
-
+        if not self.windowopen:
+            self.windowopen = True
+            Dialog = QtWidgets.QDialog()
+            ui2 = Ui_Dialog()
+            ui2.setupUi(self.mode, Dialog)
+            Dialog.exec()
+            print_logs(ui2.result_data)
+            if ui2.result_data:
+                path_switch(AppDir('AppsLauncher',
+                                   'app',
+                                   operate='insert',
+                                   NewName=ui2.result_data['Name'],
+                                   NewPath=ui2.result_data['Path'],
+                                   ), self.mode)
+                self.add_choice_to_viewlist({ui2.result_data['Name']: ui2.result_data['Path']})
+            else:
+                print_logs('no input')
+            self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
+            self.windowopen = False
     def delete(self):
-        if path_switch(AppDir('AppsLauncher', 'settings', operate='get', Name='确认删除'), self.mode):
-            m = QtWidgets.QDialog()
-            ui2 = Um()
-            ui2.setupUi(m)
-            m.exec()
-            print_logs(ui2.returndata)
-            if ui2.returndata is not None:
+        if not self.windowopen:
+            self.windowopen = True
+            if path_switch(AppDir('AppsLauncher', 'settings', operate='get', Name='确认删除'), self.mode):
+                m = QtWidgets.QDialog()
+                ui2 = Um()
+                ui2.setupUi(m)
+                m.exec()
+                print_logs(ui2.returndata)
+                if ui2.returndata is not None:
+                    path_switch(AppDir('AppsLauncher',
+                                       'app',
+                                       operate='delete',
+                                       Name=self.listWidget.currentItem().text(),
+                                       ), self.mode)
+                    self.listWidget.takeItem(self.listWidget.currentRow())
+                    if ui2.returndata:
+                        path_switch(AppDir("AppsLauncher", 'settings', operate='edit', 确认删除=False), self.mode)
+                        self.checkBox_2.setChecked(True)
+            else:
                 path_switch(AppDir('AppsLauncher',
                                    'app',
                                    operate='delete',
                                    Name=self.listWidget.currentItem().text(),
                                    ), self.mode)
                 self.listWidget.takeItem(self.listWidget.currentRow())
-                if ui2.returndata:
-                    path_switch(AppDir("AppsLauncher", 'settings', operate='edit', 确认删除=False), self.mode)
-                    self.checkBox_2.setChecked(True)
-        else:
-            path_switch(AppDir('AppsLauncher',
-                               'app',
-                               operate='delete',
-                               Name=self.listWidget.currentItem().text(),
-                               ), self.mode)
-            self.listWidget.takeItem(self.listWidget.currentRow())
-        self.change_btn_enabled(False)
-        self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
+            self.change_btn_enabled(False)
+            self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
+            self.windowopen = False
     def edit(self):
-        Dialog = QtWidgets.QDialog()
-        ui2 = Ui_Dialog()
-        if self.mode['--T-AddApps'] and any((self.listWidget.currentItem().text() == 'app1', self.listWidget.currentItem().text() == 'app2', self.listWidget.currentItem().text() == 'app3')):
-            text2 = 'dir'
-        else:
-            text2 = path_switch(AppDir('AppsLauncher', 'app', operate='get'),
-                                self.mode)[self.listWidget.currentItem().text()]
-        ui2.setupUi(self.mode, Dialog, window_type='edit', text1=self.listWidget.currentItem().text(), text2=text2)
-        Dialog.exec()
-        print_logs(ui2.result_data)
-        if ui2.result_data:
-            path_switch(AppDir('AppsLauncher',
-                               'app',
-                               operate='edit',
-                               NewName=ui2.result_data['Name'],
-                               NewPath=ui2.result_data['Path'],
-                               InitialName=ui2.result_data['InitialName'],
-                               ), self.mode)
-            CurrentLine = self.listWidget.currentItem()
-            CurrentLine.setText(ui2.result_data['Name'])
-        self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
+        if not self.windowopen:
+            self.windowopen = True
+            Dialog = QtWidgets.QDialog()
+            ui2 = Ui_Dialog()
+            if self.mode['--T-AddApps'] and any((self.listWidget.currentItem().text() == 'app1', self.listWidget.currentItem().text() == 'app2', self.listWidget.currentItem().text() == 'app3')):
+                text2 = 'dir'
+            else:
+                text2 = path_switch(AppDir('AppsLauncher', 'app', operate='get'),
+                                    self.mode)[self.listWidget.currentItem().text()]
+            ui2.setupUi(self.mode, Dialog, window_type='edit', text1=self.listWidget.currentItem().text(), text2=text2)
+            Dialog.exec()
+            print_logs(ui2.result_data)
+            if ui2.result_data:
+                path_switch(AppDir('AppsLauncher',
+                                   'app',
+                                   operate='edit',
+                                   NewName=ui2.result_data['Name'],
+                                   NewPath=ui2.result_data['Path'],
+                                   InitialName=ui2.result_data['InitialName'],
+                                   ), self.mode)
+                CurrentLine = self.listWidget.currentItem()
+                CurrentLine.setText(ui2.result_data['Name'])
+            self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
+            self.windowopen = False
 
     def add_choice_to_viewlist(self, AppDict: dict[str, AppDir | str]):
         self.listWidget.addItems(AppDict.keys())
