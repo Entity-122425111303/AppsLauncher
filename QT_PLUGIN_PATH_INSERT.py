@@ -1,5 +1,4 @@
-import os
-import PyQt5
+import os, sys, PyQt5
 
 # 获取 PyQt5 包所在的目录
 pyqt_path = os.path.dirname(PyQt5.__file__)
@@ -12,4 +11,4 @@ if not os.path.isdir(plugins_candidate):
 if os.path.isdir(plugins_candidate):
     os.environ['QT_PLUGIN_PATH'] = plugins_candidate
 else:
-    exit("Warning: Could not locate Qt plugins directory.")
+    sys.exit("Warning: Could not locate Qt plugins directory.")

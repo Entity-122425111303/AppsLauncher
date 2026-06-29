@@ -250,7 +250,7 @@ class Ui_MainWindow(object):
         self.pushButton_8.setEnabled(a0)
 
     def open(self):
-        print(self.listWidget.currentItem().text())
+        print_logs(self.listWidget.currentItem().text())
         path_switch(AppDir('AppsLauncher', 'app', Name=self.listWidget.currentItem().text(), operate='open'), self.mode)
         if not self.checkBox.isChecked():
             self.MainWindow.close()
@@ -260,7 +260,7 @@ class Ui_MainWindow(object):
         ui2 = Ui_Dialog()
         ui2.setupUi(self.mode, Dialog)
         Dialog.exec()
-        print(ui2.result_data)
+        print_logs(ui2.result_data)
         if ui2.result_data:
             path_switch(AppDir('AppsLauncher',
                                'app',
@@ -270,7 +270,7 @@ class Ui_MainWindow(object):
                                ), self.mode)
             self.add_choice_to_viewlist({ui2.result_data['Name']: ui2.result_data['Path']})
         else:
-            print('no input')
+            print_logs('no input')
         self.AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), self.mode)
 
     def delete(self):
@@ -279,7 +279,7 @@ class Ui_MainWindow(object):
             ui2 = Um()
             ui2.setupUi(m)
             m.exec()
-            print(ui2.returndata)
+            print_logs(ui2.returndata)
             if ui2.returndata is not None:
                 path_switch(AppDir('AppsLauncher',
                                    'app',
@@ -309,7 +309,7 @@ class Ui_MainWindow(object):
                                 self.mode)[self.listWidget.currentItem().text()]
         ui2.setupUi(self.mode, Dialog, window_type='edit', text1=self.listWidget.currentItem().text(), text2=text2)
         Dialog.exec()
-        print(ui2.result_data)
+        print_logs(ui2.result_data)
         if ui2.result_data:
             path_switch(AppDir('AppsLauncher',
                                'app',

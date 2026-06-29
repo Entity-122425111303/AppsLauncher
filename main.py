@@ -1,6 +1,11 @@
-import json, sys, QT_PLUGIN_PATH_INSERT, pyuac, argparse
+import json, sys, QT_PLUGIN_PATH_INSERT, pyuac, argparse, time
+import os
+
 from uiclses import *
 from operatefuncs import *
+
+print_logs('')
+print_logs(f'main run {sys.argv}')
 
 if getattr(sys, 'frozen', False):
     os.chdir(os.path.dirname(sys.executable))
@@ -28,6 +33,7 @@ false, ture, null = False, True, None
 app = QtWidgets.QApplication(sys.argv)
 __AppPath = {'exit': AppDir('AppsLauncher', 'exit', ExitCode=0)}
 NewApp: tuple = ()
+os.makedirs('./data/logs', exist_ok=True)
 
 # 从各个盘的根目录下读取AppName,AppPath
 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode)
@@ -38,10 +44,9 @@ if mode['LinkStart']:
         if path_switch(AppDir('AppsLauncher', 'app', operate='open', Name=x), mode):
             num += 1
     if num == 0:
-        print('error\r\n打开主程序')
+        print_logs('error\t打开主程序')
     else:
         path_switch(AppDir('AppsLauncher', 'exit', ExitCode=0), mode)
-
 
 # 主程序
 @pyuac.main_requires_admin
@@ -80,6 +85,7 @@ if __name__ == '__main__':
 文件中：{'AppName':'example/example.exe'}     AppDir
 设置保存方法：{'Name':'DefaultValue'}    settings     {'打开不关闭':False,'确认删除':True}
 应用数据保存路径：./data
+日志：./data/logs/{time}.data
 
 所有文件路径拼接用'/'
 '''

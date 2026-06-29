@@ -1,5 +1,5 @@
 from appcls import AppDir
-import json, os, re
+import json, os, re, sys, time
 
 
 # noinspection
@@ -11,12 +11,12 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
     match dir1:
         case AppDir('AppsLauncher', 'app', env) if env['operate'] == 'open':  # 打开应用
             try:
-                print(f'opening {env["Name"]}')
+                print_logs(f'opening {env["Name"]}')
                 AppPath = path_switch(AppDir("AppsLauncher", 'app', operate='get'), mode)
                 os.startfile(AppPath[env["Name"]])
                 return True
             except:
-                print('fail!')
+                print_logs('fail!')
                 return False
         case AppDir('AppsLauncher', 'app', env) \
                 if env['operate'] == 'insert' and env['NewName'] and env['NewPath']:  # 增加应用
@@ -30,7 +30,7 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
             except ValueError as e:
                 path_switch(AppDir("AppsLauncher", 'exit', ErrorCode=1, ErrorInfo=e), mode)
             if env['NewName'] in AppPath:
-                print('the app has already been created')
+                print_logs('the app has already been created')
             else:
                 AppPath[env['NewName']] = re.split(':/', env["NewPath"])[-1]
                 path_switch(AppDir('AppsLauncher',
@@ -114,14 +114,14 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
                 raise ValueError('incorrect drives')
         case AppDir('AppsLauncher', 'exit', env) if env:  # 退出
             if env['ExitCode'] == 0:
-                exit(0)
+                sys.exit(0)
             else:
                 if env['ErrorInfo']:
-                    exit(f'{env["ErrorInfo"]}')
+                    sys.exit(f'{env["ErrorInfo"]}')
                 elif type(env['ExitCode']) is str:
-                    exit(env['ExitCode'])
+                    sys.exit(env['ExitCode'])
                 else:
-                    exit(env['ExitCode'])
+                    sys.exit(env['ExitCode'])
         case AppDir('AppsLauncher', 'settings', env) if env['operate'] == 'edit':  # 修改设置
             with open('./data/settings.json', 'r', encoding='utf8') as f:
                 setings: dict = json.load(f)
@@ -149,6 +149,10 @@ def path_switch(dir1: AppDir, mode: dict):  # type: ignore
         case _:
             raise SyntaxError(f'Invalid app path {dir1.get_fulldir()}')
 
+def print_logs(logs):
+    with open(f'./data/logs/{time.strftime("%Y%m%d")}.data', 'a', encoding='utf8') as f:
+        print(f'[{time.strftime("%H:%M:%S")}]', end='\t', file=f)
+        print(logs, file=f)
 
 if __name__ == '__main__':
 
