@@ -4,6 +4,9 @@ import os
 from uiclses import *
 from operatefuncs import *
 
+os.makedirs('./data/logs', exist_ok=True)
+os.makedirs('./data', exist_ok=True)
+
 print_logs('')
 print_logs(f'main run {sys.argv}')
 
@@ -33,7 +36,6 @@ false, ture, null = False, True, None
 app = QtWidgets.QApplication(sys.argv)
 __AppPath = {'exit': AppDir('AppsLauncher', 'exit', ExitCode=0)}
 NewApp: tuple = ()
-os.makedirs('./data/logs', exist_ok=True)
 
 # 从各个盘的根目录下读取AppName,AppPath
 AppPath = path_switch(AppDir('AppsLauncher', 'app', operate='get'), mode)
@@ -51,7 +53,6 @@ if mode['LinkStart']:
 # 主程序
 @pyuac.main_requires_admin
 def main():
-    os.makedirs('./data', exist_ok=True)
     if not os.path.exists('./data/settings.json'):
         with open('./data/settings.json', 'w', encoding='utf8') as f:
             settings = {'确认删除': True, '打开不关闭': False}
